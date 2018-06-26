@@ -37,12 +37,14 @@ void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
     return;
   }
 
-  if (y0 == y1) {
+  if (y0 == y1) { // horizontal line
     if (x0 > x1) {
       std::swap(x0, x1);
     }
     for (Uint32 x = x0; x <= x1; ++x)
       SetPixel(surface, x, y0, color);
+
+    return;
   }
 
   bool steep = false;
