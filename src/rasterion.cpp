@@ -2,29 +2,57 @@
 #include <assert.h>
 #include <cstdlib>
 
-void SetPixel(SDL_Surface *surface, Uint32 x, Uint32 y, SDL_Color color) {
-  assert(surface != nullptr);
-  Uint32 col = SDL_MapRGB(surface->format, color.r, color.g, color.b);
-  Uint8 bytesPerPixel = surface->format->BytesPerPixel;
-  Uint8 *pixel = static_cast<Uint8 *>(surface->pixels);
-  pixel += surface->pitch * y + bytesPerPixel * x;
-  memcpy(pixel, &col, bytesPerPixel);
+namespace rs {
+
+class Rasterion {
+public:
+  bool Init(SDL_Surface *surface);
+  void SetPixel(Uint32 x, Uint32 y, SDL_Color color);
+  SDL_Color GetPixel(Uint32 x, Uint32 y);
+  void DrawLine(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, SDL_Color color);
+  void Shutdown();
+
+private:
+  SDL_Surface *_surface;
+  void *_pixels;
+  int _surfacePitch;
+  Uint8 _surfaceBytesPerPixel;
+  SDL_PixelFormat *_surfaceFormat;
+};
+
+static Rasterion rasterion;
+
+bool Rasterion::Init(SDL_Surface *surface) {
+  _surface = surface;
+  _pixels = surface->pixels;
+  _surfacePitch = surface->pitch;
+  _surfaceBytesPerPixel = surface->format->BytesPerPixel;
+  _surfaceFormat = surface->format;
+
+  return true;
 }
 
-SDL_Color GetPixel(SDL_Surface *surface, Uint32 x, Uint32 y) {
-  assert(surface != nullptr);
+void Rasterion::SetPixel(Uint32 x, Uint32 y, SDL_Color color) {
+  assert(_surface != nullptr);
+  Uint32 col = SDL_MapRGB(_surfaceFormat, color.r, color.g, color.b);
+  Uint8 *pixel = static_cast<Uint8 *>(_pixels);
+  pixel += _surfacePitch * y + _surfaceBytesPerPixel * x;
+  memcpy(pixel, &col, _surfaceBytesPerPixel);
+}
+
+SDL_Color Rasterion::GetPixel(Uint32 x, Uint32 y) {
+  assert(_surface != nullptr);
   SDL_Color color;
   Uint32 col = 0;
-  Uint8 bytesPerPixel = surface->format->BytesPerPixel;
-  Uint8 *pixel = static_cast<Uint8 *>(surface->pixels);
-  pixel += surface->pitch * y + bytesPerPixel * x;
-  memcpy(&col, pixel, bytesPerPixel);
-  SDL_GetRGB(col, surface->format, &color.r, &color.g, &color.b);
+  Uint8 *pixel = static_cast<Uint8 *>(_pixels);
+  pixel += _surfacePitch * y + _surfaceBytesPerPixel * x;
+  memcpy(&col, pixel, _surfaceBytesPerPixel);
+  SDL_GetRGB(col, _surfaceFormat, &color.r, &color.g, &color.b);
   return color;
 }
 
-void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
-              SDL_Color color) {
+void Rasterion::DrawLine(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
+                         SDL_Color color) {
 
   if (x0 == x1) // vertical line
   {
@@ -32,7 +60,7 @@ void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
       std::swap(y0, y1);
     }
     for (Uint32 y = y0; y <= y1; ++y)
-      SetPixel(surface, x0, y, color);
+      SetPixel(x0, y, color);
 
     return;
   }
@@ -42,7 +70,7 @@ void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
       std::swap(x0, x1);
     }
     for (Uint32 x = x0; x <= x1; ++x)
-      SetPixel(surface, x, y0, color);
+      SetPixel(x, y0, color);
 
     return;
   }
@@ -65,9 +93,9 @@ void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
 
   for (Uint32 x = x0; x <= x1; ++x) {
     if (steep) {
-      SetPixel(surface, y, x, color);
+      SetPixel(y, x, color);
     } else {
-      SetPixel(surface, x, y, color);
+      SetPixel(x, y, color);
     }
     error += derror;
     if (error > dx) {
@@ -75,4 +103,27 @@ void DrawLine(SDL_Surface *surface, Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1,
       error -= dx * 2;
     }
   }
+}
+
+void Rasterion::Shutdown() {
+  _surface = nullptr;
+  _pixels = nullptr;
+  _surfacePitch = 0;
+  _surfaceBytesPerPixel = 0;
+  _surfaceFormat = nullptr;
+}
+
+bool Init(SDL_Surface *surface) { return rasterion.Init(surface); }
+
+void SetPixel(Uint32 x, Uint32 y, SDL_Color color) {
+  rasterion.SetPixel(x, y, color);
+}
+
+SDL_Color GetPixel(Uint32 x, Uint32 y) { return rasterion.GetPixel(x, y); }
+
+void DrawLine(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, SDL_Color color) {
+  rasterion.DrawLine(x0, y0, x1, y1, color);
+}
+
+void ShutDown() { rasterion.Shutdown(); }
 }

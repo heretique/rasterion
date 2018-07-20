@@ -1,5 +1,7 @@
 #define SDL_MAIN_HANDLED
 
+#include "Test5.h"
+#include "TestInterface.h"
 #include "rasterion.h"
 
 #include <SDL2/SDL.h>
@@ -15,28 +17,52 @@ void ClearSurface(SDL_Surface *surface) {
   SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0x0, 0x0, 0x0));
 }
 
-void Test1(SDL_Surface *surface) {
-  SetPixel(surface, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
-           {0xff, 0x0, 0x0, 0x0});
-}
+class Test1 : public TestInterface {
+  // TestInterface interface
+public:
+  virtual void init() override {}
+  virtual void run(SDL_Surface *surface) override {
+    rs::SetPixel(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
+                 {0xff, 0x0, 0x0, 0x0});
+  }
+  virtual void input(SDL_Keycode keyPressed) override {}
+};
 
-void Test2(SDL_Surface *surface) {
-  DrawLine(surface, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
-           rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
-           {0xff, 0x0, 0x0, 0x0});
-}
+class Test2 : public TestInterface {
+  // TestInterface interface
+public:
+  virtual void init() override {}
+  virtual void run(SDL_Surface *surface) override {
+    rs::DrawLine(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
+                 rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
+                 {0xff, 0x0, 0x0, 0x0});
+  }
+  virtual void input(SDL_Keycode keyPressed) override {}
+};
 
-void Test3(SDL_Surface *surface) { // vertical lines
-  Uint32 x = rand() % SCREEN_WIDTH;
-  DrawLine(surface, x, rand() % SCREEN_HEIGHT, x, rand() % SCREEN_HEIGHT,
-           {0xff, 0x0, 0x0, 0x0});
-}
+class Test3 : public TestInterface {
+  // TestInterface interface
+public:
+  virtual void init() override {}
+  virtual void run(SDL_Surface *surface) override {
+    Uint32 x = rand() % SCREEN_WIDTH;
+    rs::DrawLine(x, rand() % SCREEN_HEIGHT, x, rand() % SCREEN_HEIGHT,
+                 {0xff, 0x0, 0x0, 0x0});
+  }
+  virtual void input(SDL_Keycode keyPressed) override {}
+};
 
-void Test4(SDL_Surface *surface) { // horizontal lines
-  Uint32 y = rand() % SCREEN_HEIGHT;
-  DrawLine(surface, rand() % SCREEN_WIDTH, y, rand() % SCREEN_WIDTH, y,
-           {0xff, 0x0, 0x0, 0x0});
-}
+class Test4 : public TestInterface {
+  // TestInterface interface
+public:
+  virtual void init() override {}
+  virtual void run(SDL_Surface *surface) override {
+    Uint32 y = rand() % SCREEN_HEIGHT;
+    rs::DrawLine(rand() % SCREEN_WIDTH, y, rand() % SCREEN_WIDTH, y,
+                 {0xff, 0x0, 0x0, 0x0});
+  }
+  virtual void input(SDL_Keycode keyPressed) override {}
+};
 
 int main(int argc, char **argv) {
   SDL_Window *window = nullptr;
@@ -60,10 +86,12 @@ int main(int argc, char **argv) {
   surface = SDL_GetWindowSurface(window);
   ClearSurface(surface);
 
+  rs::Init(surface);
+
   bool running = true;
   // Event handler
   SDL_Event e;
-  TestFunc testFunc = &Test1;
+  std::unique_ptr<TestInterface> testInterface = std::make_unique<Test1>();
 
   while (running) {
 
@@ -77,33 +105,34 @@ int main(int argc, char **argv) {
           running = false;
           break;
         case SDLK_1:
-          if (testFunc != &Test1) {
-            testFunc = &Test1;
-            ClearSurface(surface);
-          }
+          testInterface = std::make_unique<Test1>();
+          testInterface->init();
+          ClearSurface(surface);
           break;
         case SDLK_2:
-          if (testFunc != &Test2) {
-            testFunc = &Test2;
-            ClearSurface(surface);
-          }
+          testInterface = std::make_unique<Test2>();
+          testInterface->init();
+          ClearSurface(surface);
           break;
         case SDLK_3:
-          if (testFunc != &Test3) {
-            testFunc = &Test3;
-            ClearSurface(surface);
-          }
+          testInterface = std::make_unique<Test3>();
+          testInterface->init();
+          ClearSurface(surface);
           break;
         case SDLK_4:
-          if (testFunc != &Test4) {
-            testFunc = &Test4;
-            ClearSurface(surface);
-          }
+          testInterface = std::make_unique<Test4>();
+          testInterface->init();
+          ClearSurface(surface);
           break;
         case SDLK_5:
+          testInterface = std::make_unique<Test5>(SCREEN_WIDTH, SCREEN_HEIGHT);
+          testInterface->init();
+          ClearSurface(surface);
           break;
         case SDLK_6:
           break;
+        default:
+          testInterface->input(keyPressed);
         }
       }
       // User requests quit
@@ -112,11 +141,13 @@ int main(int argc, char **argv) {
       }
     }
 
-    testFunc(surface);
+    testInterface->run(surface);
 
     // Update the surface
     SDL_UpdateWindowSurface(window);
   }
+
+  rs::ShutDown();
 
   SDL_DestroyWindow(window);
 
