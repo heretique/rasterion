@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.5)
 add_library(rasterion STATIC "")
 
 target_sources(rasterion PRIVATE rasterion.cpp
-    ../include/rasterion.h)
+    id_pool.h
+    ../include/rasterion.h
+    ../include/math/vector.h
+    ../include/math/util.h)
 
 find_package(SDL2 REQUIRED)
 
