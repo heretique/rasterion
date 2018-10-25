@@ -78,9 +78,7 @@ public:
             }
         }
     }
-    virtual void input(SDL_Keycode keyPressed) override
-    {
-    }
+    virtual void input(SDL_Keycode keyPressed) override {}
 
     Point transform(Point p)
     {

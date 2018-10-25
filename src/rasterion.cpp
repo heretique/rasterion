@@ -1,11 +1,11 @@
 #include "rasterion.h"
-#include "id_pool.h"
+#include <Hq/IdPool.h>
 
 #include <assert.h>
 
 #include <cstdlib>
 #include <unordered_map>
-#include "math/util.h"
+#include <Hq/Utils.h>
 
 namespace rs
 {
@@ -16,7 +16,7 @@ public:
     void shutdown();
 
     // direct surface access
-    void setPixel(Uint32 x, Uint32 y, SDL_Color color, float blendFactor = 1.f);
+    void      setPixel(Uint32 x, Uint32 y, SDL_Color color, float blendFactor = 1.f);
     SDL_Color getPixel(Uint32 x, Uint32 y);
 
     void drawLine(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, SDL_Color color);
@@ -25,9 +25,9 @@ public:
     void drawRectangle(Uint32 x, Uint32 y, Uint32 w, Uint32 h, SDL_Color color);
 
     // resource creation
-    Buffer makeBuffer(const BufferDesc& bufferDesc);
-    Image makeImage(const ImageDesc& imageDesc);
-    Shader makeShader(const ShaderDesc& shaderDesc);
+    Buffer   makeBuffer(const BufferDesc& bufferDesc);
+    Image    makeImage(const ImageDesc& imageDesc);
+    Shader   makeShader(const ShaderDesc& shaderDesc);
     Pipeline makePipeline(const PipelineDesc& pipelineDesc);
 
     // resource update
@@ -37,19 +37,19 @@ public:
     void updateImage(Image image, const void* data, size_t size);
 
 private:
-    SDL_Surface*     _surface;
-    void*            _pixels;
-    int              _surfacePitch;
-    Uint8            _surfaceBytesPerPixel;
-    SDL_PixelFormat* _surfaceFormat;
+    SDL_Surface*                             _surface;
+    void*                                    _pixels;
+    int                                      _surfacePitch;
+    Uint8                                    _surfaceBytesPerPixel;
+    SDL_PixelFormat*                         _surfaceFormat;
     std::unordered_map<Uint32, BufferDesc>   _buffers;
     std::unordered_map<Uint32, ImageDesc>    _images;
     std::unordered_map<Uint32, ShaderDesc>   _shaders;
     std::unordered_map<Uint32, PipelineDesc> _pipelines;
-    IdPool _buffersIdPool;
-    IdPool _imageIdPool;
-    IdPool _shadersIdPool;
-    IdPool _pipelinesIdPool;
+    hq::IdPool                               _buffersIdPool;
+    hq::IdPool                               _imageIdPool;
+    hq::IdPool                               _shadersIdPool;
+    hq::IdPool                               _pipelinesIdPool;
 };
 
 static Rasterion rasterion;
@@ -185,6 +185,7 @@ void Rasterion::drawLine(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, SDL_Color c
 /// https://rosettacode.org/wiki/Xiaolin_Wu%27s_line_algorithm#C
 void Rasterion::drawLineAntialiased(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, SDL_Color color)
 {
+    using namespace hq;
     bool steep = std::abs((int)(y1 - y0)) > std::abs((int)(x1 - x0));
     if (steep)
     {
@@ -207,20 +208,20 @@ void Rasterion::drawLineAntialiased(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, 
 
     float xend = std::roundf(x0);
     float yend = y0 + gradient * (xend - x0);
-    float xgap = util::rfpart(x0 + 0.5f);
+    float xgap = rfpart(x0 + 0.5f);
 
     int xpxl1 = (int)xend;  // this will be used in the main loop
     int ypxl1 = (int)yend;
     if (steep)
     {
-        setPixel(ypxl1, xpxl1, color, util::rfpart(yend) * xgap);
-        setPixel(ypxl1 + 1, xpxl1, color, util::fpart(yend) * xgap);
+        setPixel(ypxl1, xpxl1, color, rfpart(yend) * xgap);
+        setPixel(ypxl1 + 1, xpxl1, color, fpart(yend) * xgap);
     }
 
     else
     {
-        setPixel(xpxl1, ypxl1, color, util::rfpart(yend) * xgap);
-        setPixel(xpxl1, ypxl1 + 1, color, util::fpart(yend) * xgap);
+        setPixel(xpxl1, ypxl1, color, rfpart(yend) * xgap);
+        setPixel(xpxl1, ypxl1 + 1, color, fpart(yend) * xgap);
     }
 
     float intery = yend + gradient;  // first y-intersection for the main loop
@@ -228,45 +229,41 @@ void Rasterion::drawLineAntialiased(Uint32 x0, Uint32 y0, Uint32 x1, Uint32 y1, 
     // handle second endpoint
     xend      = std::roundf(x1);
     yend      = y1 + gradient * (xend - x1);
-    xgap      = util::fpart(x1 + 0.5f);
+    xgap      = fpart(x1 + 0.5f);
     int xpxl2 = (int)xend;  // this will be used in the main loop
     int ypxl2 = (int)yend;
 
     if (steep)
     {
-        setPixel(ypxl2, xpxl2, color, util::rfpart(yend) * xgap);
-        setPixel(ypxl2 + 1, xpxl2, color, util::fpart(yend) * xgap);
+        setPixel(ypxl2, xpxl2, color, rfpart(yend) * xgap);
+        setPixel(ypxl2 + 1, xpxl2, color, fpart(yend) * xgap);
     }
     else
     {
-        setPixel(xpxl2, ypxl2, color, util::rfpart(yend) * xgap);
-        setPixel(xpxl2, ypxl2 + 1, color, util::fpart(yend) * xgap);
+        setPixel(xpxl2, ypxl2, color, rfpart(yend) * xgap);
+        setPixel(xpxl2, ypxl2 + 1, color, fpart(yend) * xgap);
     }
 
     // main loop
     if (steep)
         for (int x = xpxl1 + 1; x < xpxl2; ++x)
         {
-            setPixel((int)intery, x, color, util::rfpart(intery));
-            setPixel((int)intery + 1, x, color, util::fpart(intery));
+            setPixel((int)intery, x, color, rfpart(intery));
+            setPixel((int)intery + 1, x, color, fpart(intery));
             intery = intery + gradient;
         }
     else
         for (int x = xpxl1 + 1; x < xpxl2; ++x)
         {
-            setPixel(x, (int)intery, color, util::rfpart(intery));
-            setPixel(x, (int)intery + 1, color, util::fpart(intery));
+            setPixel(x, (int)intery, color, rfpart(intery));
+            setPixel(x, (int)intery + 1, color, fpart(intery));
             intery = intery + gradient;
         }
 }
 
-void Rasterion::drawCircle(Uint32 x, Uint32 y, Uint32 r, SDL_Color color)
-{
-}
+void Rasterion::drawCircle(Uint32 x, Uint32 y, Uint32 r, SDL_Color color) {}
 
-void Rasterion::drawRectangle(Uint32 x, Uint32 y, Uint32 w, Uint32 h, SDL_Color color)
-{
-}
+void Rasterion::drawRectangle(Uint32 x, Uint32 y, Uint32 w, Uint32 h, SDL_Color color) {}
 
 Buffer Rasterion::makeBuffer(const BufferDesc& bufferDesc)
 {
@@ -441,9 +438,7 @@ void DrawRectangle(SDL_Point topLeft, SDL_Point bottomRight, SDL_Color color)
     rasterion.drawRectangle(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y, color);
 }
 
-void DrawRectangle(SDL_Rect r, SDL_Color color)
-{
-}
+void DrawRectangle(SDL_Rect r, SDL_Color color) {}
 
 Buffer MakeBuffer(const BufferDesc& bufferDesc)
 {
@@ -465,19 +460,11 @@ Pipeline MakePipeline(const PipelineDesc& pipelineDesc)
     return rasterion.makePipeline(pipelineDesc);
 }
 
-void DestroyBuffer(Buffer buffer)
-{
-}
+void DestroyBuffer(Buffer buffer) {}
 
-void DestroyImage(Image image)
-{
-}
+void DestroyImage(Image image) {}
 
-void DestroyShader(Shader shader)
-{
-}
+void DestroyShader(Shader shader) {}
 
-void DestroyPipeline(Pipeline pipeline)
-{
-}
+void DestroyPipeline(Pipeline pipeline) {}
 }

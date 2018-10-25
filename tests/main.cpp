@@ -4,7 +4,7 @@
 #include "TestInterface.h"
 #include "rasterion.h"
 #include <iostream>
-#include "math/vector.h"
+#include <Hq/Math/Vector.h>
 #include <SDL2/SDL.h>
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -26,14 +26,14 @@ class Test1 : public TestInterface
 public:
     virtual void init() override
     {
-        using namespace math;
+        using namespace hq::math;
         // TEST VECTORS
         Vector3f v1(1.f, 1.f, 1.f);
         Vector3f v2 = {1.f, 2.f, 3.f};
-        Vector3f v3{1.f, 2.f, 3.f};
+        Vector3f v3 {1.f, 2.f, 3.f};
         Vector3f v4 = {{1.f, 2.f}, 3.f};
-        Vector3f x{1.f, 0.f, 0.f};
-        Vector3f y{0.f, 1.f, 0.f};
+        Vector3f x {1.f, 0.f, 0.f};
+        Vector3f y {0.f, 1.f, 0.f};
         Vector3f z = cross(x, y);
         float    d = dot(x, z);
     }
@@ -41,60 +41,46 @@ public:
     {
         rs::SetPixel(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, {0xff, 0x0, 0x0, 0x0});
     }
-    virtual void input(SDL_Keycode keyPressed) override
-    {
-    }
+    virtual void input(SDL_Keycode keyPressed) override {}
 };
 
 class Test2 : public TestInterface
 {
     // TestInterface interface
 public:
-    virtual void init() override
-    {
-    }
+    virtual void init() override {}
     virtual void run(SDL_Surface* surface) override
     {
-        rs::DrawLine(rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT, rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT,
-                     {0xff, 0x0, 0x0, 0x0}, true);
+        rs::DrawLine(rand() % (SCREEN_WIDTH - 1), rand() % (SCREEN_HEIGHT - 1), rand() % (SCREEN_WIDTH - 1),
+                     rand() % (SCREEN_HEIGHT - 1), {0xff, 0x0, 0x0, 0x0}, true);
     }
-    virtual void input(SDL_Keycode keyPressed) override
-    {
-    }
+    virtual void input(SDL_Keycode keyPressed) override {}
 };
 
 class Test3 : public TestInterface
 {
     // TestInterface interface
 public:
-    virtual void init() override
-    {
-    }
+    virtual void init() override {}
     virtual void run(SDL_Surface* surface) override
     {
         Uint32 x = rand() % SCREEN_WIDTH;
         rs::DrawLine(x, rand() % SCREEN_HEIGHT, x, rand() % SCREEN_HEIGHT, {0xff, 0x0, 0x0, 0x0});
     }
-    virtual void input(SDL_Keycode keyPressed) override
-    {
-    }
+    virtual void input(SDL_Keycode keyPressed) override {}
 };
 
 class Test4 : public TestInterface
 {
     // TestInterface interface
 public:
-    virtual void init() override
-    {
-    }
+    virtual void init() override {}
     virtual void run(SDL_Surface* surface) override
     {
         Uint32 y = rand() % SCREEN_HEIGHT;
         rs::DrawLine(rand() % SCREEN_WIDTH, y, rand() % SCREEN_WIDTH, y, {0xff, 0x0, 0x0, 0x0});
     }
-    virtual void input(SDL_Keycode keyPressed) override
-    {
-    }
+    virtual void input(SDL_Keycode keyPressed) override {}
 };
 
 int main(int argc, char** argv)
@@ -166,7 +152,7 @@ int main(int argc, char** argv)
                         ClearSurface(surface);
                         break;
                     case SDLK_5:
-                        testInterface = std::make_unique<Test5>(SCREEN_WIDTH, SCREEN_HEIGHT);
+                        testInterface = std::make_unique<Test5>(SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
                         testInterface->init();
                         ClearSurface(surface);
                         break;

@@ -135,9 +135,9 @@ enum class PixelFormat
 // descriptors for resources
 struct BufferDesc
 {
-    Uint32     size{0};
-    BufferType type{BufferType::Vertex};
-    void*      content{nullptr};  // initial content
+    Uint32     size {0};
+    BufferType type {BufferType::Vertex};
+    void*      content {nullptr};  // initial content
 };
 
 struct BufferAttrDesc
@@ -151,11 +151,11 @@ struct BufferLayoutDesc
 
 struct ImageDesc
 {
-    Uint32      width{0};
-    Uint32      height{0};
-    Uint8       bpp{0};  // bytes per pixel
+    Uint32      width {0};
+    Uint32      height {0};
+    Uint8       bpp {0};  // bytes per pixel
     PixelFormat pixelFormat;
-    void*       content{nullptr};
+    void*       content {nullptr};
 
     size_t size() const
     {
@@ -177,10 +177,10 @@ struct PipelineDesc
 struct DrawState
 {
     Pipeline           pipeline;
-    Buffer             vertexBuffer{0};
-    Uint32             vertexBufferOffset{0};
-    Buffer             indexBuffer{0};
-    Uint32             indexBufferOffset{0};
+    Buffer             vertexBuffer {0};
+    Uint32             vertexBufferOffset {0};
+    Buffer             indexBuffer {0};
+    Uint32             indexBufferOffset {0};
     std::vector<Image> images;
 };
 // init & shutdown
@@ -205,9 +205,9 @@ void DrawRectangle(SDL_Point p, SDL_Point size, SDL_Color color);
 void DrawRectangle(SDL_Rect r, SDL_Color color);
 
 // resource creation
-Buffer MakeBuffer(const BufferDesc& bufferDesc);
-Image MakeImage(const ImageDesc& imageDesc);
-Shader MakeShader(const ShaderDesc& shaderDesc);
+Buffer   MakeBuffer(const BufferDesc& bufferDesc);
+Image    MakeImage(const ImageDesc& imageDesc);
+Shader   MakeShader(const ShaderDesc& shaderDesc);
 Pipeline MakePipeline(const PipelineDesc& pipelineDesc);
 
 // resource update
