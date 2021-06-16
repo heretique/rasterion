@@ -6,7 +6,7 @@ target_sources(rasterion PRIVATE
     rasterion.cpp
     ../include/rasterion.h)
 
-find_package(SDL2 REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
 
 target_include_directories(rasterion PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>

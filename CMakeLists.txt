@@ -13,4 +13,4 @@ include(CMakeToolsHelpers OPTIONAL)
 
 add_subdirectory(src)
 add_subdirectory(tests)
-add_subdirectory(../hq hq)
+add_subdirectory(hq)

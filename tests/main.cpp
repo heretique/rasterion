@@ -5,7 +5,7 @@
 #include "rasterion.h"
 #include <iostream>
 #include <Hq/Math/Vector.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
